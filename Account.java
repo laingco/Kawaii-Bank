@@ -53,4 +53,12 @@ public class Account {
     public double getBalance(){
         return(this.balance);
     }
+
+    public void printData(){
+        System.out.print("Name: " + this.name);
+        System.out.print(", Address: " + this.address);
+        System.out.print(", Account Number: " + this.accountNumber);
+        System.out.print(", Account type: " + this.accountType);
+        System.out.println(", Balance: " + this.balance);
+    }
 }
