@@ -31,6 +31,7 @@ public class EditCSV {
                 String[] currentLine = scanner.nextLine().split(",");
                 output.add(currentLine);
             }
+            scanner.close();
         }catch(IOException e){
             e.printStackTrace();
         };

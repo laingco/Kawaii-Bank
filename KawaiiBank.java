@@ -15,8 +15,9 @@ public class KawaiiBank {
         for (int i = 0; i < accounts.size(); i++){
             accounts.get(i).printData();
         }
-        accounts.add(test);
+        //accounts.add(test);
         csvEditor.setData(accounts);
+        GUI gui = new GUI();
     }
 
 }
