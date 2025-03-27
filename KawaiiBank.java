@@ -17,7 +17,7 @@ public class KawaiiBank {
         }
         //accounts.add(test);
         csvEditor.setData(accounts);
-        GUI gui = new GUI();
+        GUI gui = new GUI(accounts);
     }
 
 }
