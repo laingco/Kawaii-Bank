@@ -54,6 +54,45 @@ public class Account {
         return(this.balance);
     }
 
+    public String getData(int index){
+        switch (index){
+            case 0:
+                return(this.name);
+            case 1:
+                return(this.address);
+            case 2:
+                return(this.accountNumber);
+            case 3:
+                return(this.accountType);
+            case 4:
+                return(Double.toString(this.balance));
+            default:
+                return("");
+        }
+    }
+
+    public void setData(String input, int index){
+        switch (index){
+            case 0:
+                this.name = input;
+                break;
+            case 1:
+                this.address = input;
+                break;
+            case 2:
+                this.accountNumber = input;
+                break;
+            case 3:
+                this.accountType = input;
+                break;
+            case 4:
+                this.balance = Double.parseDouble(input);
+                break;
+            default:
+                break;
+        }
+    }
+
     public void printData(){
         System.out.print("Name: " + this.name);
         System.out.print(", Address: " + this.address);

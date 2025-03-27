@@ -6,26 +6,33 @@ public class GUI {
     private JFrame jframe = new JFrame("Kawaii Bank");
     private JPanel mainPanel;
     private CardLayout cardLayout;
-    private int SCREEN_WIDTH = 500;
-    private int SCREEN_HEIGHT = 500;
-    private int mainMenuItems = 4; //Number of items shown in main menu
+    private ArrayList<Account> accounts;
+    private int SCREEN_WIDTH;
+    private int SCREEN_HEIGHT;
+    private int mainMenuItems = 5; //Number of items shown in main menu
 
-    public GUI(ArrayList<Account> accounts){
-        jframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        jframe.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+    public GUI(ArrayList<Account> accounts, int SCREEN_WIDTH, int SCREEN_HEIGHT){
+        this.accounts = accounts;
+        this.SCREEN_WIDTH = SCREEN_WIDTH;
+        this.SCREEN_HEIGHT = SCREEN_HEIGHT;
+    }
+
+    public void initialize(){
+        jframe.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        jframe.setSize(this.SCREEN_WIDTH, this.SCREEN_HEIGHT);
 
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
         JPanel homeScreen = createHomePanel();
-        JPanel accountListScreen = createAccountListPanel(accounts);
+        JPanel accountListScreen = createAccountListPanel();
 
         mainPanel.add(homeScreen, "Home");
         mainPanel.add(accountListScreen, "Accounts");
-        
+
         ArrayList<JPanel> infoScreens = new ArrayList<JPanel>();
         for (int i = 0; i < accounts.size(); i++){
-            infoScreens.add(createAccountInfoPanel(accounts, i));
+            infoScreens.add(createAccountInfoPanel(i));
             mainPanel.add(infoScreens.get(i), accounts.get(i).getAccountNumber());
         }
 
@@ -51,10 +58,14 @@ public class GUI {
         JButton removeAccounts = new JButton("Remove account");
         panel.add(removeAccounts);
 
+        JButton exit = new JButton("Save and exit");
+        exit.addActionListener(e -> {new EditCSV().setData(accounts); jframe.dispose();});
+        panel.add(exit);
+
         return(panel);
     }
 
-    public JPanel createAccountListPanel(ArrayList<Account> accounts){
+    public JPanel createAccountListPanel(){
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(createBackBar("Home"), BorderLayout.NORTH);
         
@@ -75,30 +86,53 @@ public class GUI {
 
     public JPanel createBackBar(String panelName){
         JButton back = new JButton("Back");
-        back.addActionListener(e -> cardLayout.show(mainPanel, panelName));
+        back.addActionListener(e -> {mainPanel.add(createAccountListPanel(), "Accounts"); 
+            cardLayout.show(mainPanel, panelName);});
         JPanel backBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         backBar.add(back);
         return(backBar);
     }
 
-    public JPanel createAccountInfoPanel(ArrayList<Account> accounts, int accountIndex){
+    public JPanel createAccountInfoPanel(int accountIndex){
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(createBackBar("Accounts"), BorderLayout.NORTH);
 
         JPanel infoPanel = new JPanel(new GridLayout(5, 3, 0, 20));
         
+        String[] labels = {"Name: ", "Address: ", "Account number: ", "Account type: ", "Balance: "};
+        String[] choices = {"Current", "Everyday", "Savings"};
+        ArrayList<JButton> textSave = new ArrayList<JButton>();
 
-        JLabel name = new JLabel("Name: ", JLabel.LEFT);
-        JTextField nameField = new JTextField(15);
-        name.setToolTipText(accounts.get(accountIndex).getName());
-        JButton nameSave = new JButton();
-        JLabel address = new JLabel("Address: ", JLabel.LEFT);
+        for (int i = 0; i < 5; i++){
+            JLabel text = new JLabel(labels[i], JLabel.LEFT);
+            text.setFont(new Font("Arial", Font.PLAIN, 25));
+            infoPanel.add(text);
 
-        JLabel accountNumber = new JLabel("Account Number: ", JLabel.LEFT);
+            if (i != 3){
+                JTextField textField = new JTextField(accounts.get(accountIndex).getData(i), 10);
+                infoPanel.add(textField);
+            }else{
+                JComboBox<String> textField = new JComboBox<String>(choices);
+                infoPanel.add(textField);
+            }
 
-        JLabel accountType = new JLabel("Account type: ", JLabel.LEFT);
+            final int x = i;
+            textSave.add(new JButton("Save"));
+            textSave.get(i).addActionListener(e -> {
+                if (x != 3) { 
+                    JTextField textField = (JTextField) infoPanel.getComponent(3 * x + 1);
+                    accounts.get(accountIndex).setData(textField.getText(), x);
+                } else {
+                    //Gets the new JComboBox from the original definition of the old one using getComponent() and since I know how many components are made in each run of the for loop
+                    //I use 3 * x (x = i at original definition of listener) which would give me the associated JLabel to the entry but since i want the JComboBox (which is the next component added) I add 1.
+                    JComboBox<String> textField = (JComboBox<String>) infoPanel.getComponent(3 * x + 1);
+                    accounts.get(accountIndex).setData(textField.getSelectedItem().toString(), x);
+                }
+                mainPanel.add(createAccountListPanel(), "Accounts");});
+            infoPanel.add(textSave.get(i));
+        }
 
-        JLabel balance = new JLabel("Balance: ", JLabel.LEFT);
+        panel.add(infoPanel, BorderLayout.CENTER);
 
         return(panel);
     }

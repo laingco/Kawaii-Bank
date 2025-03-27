@@ -37,4 +37,14 @@ public class EditCSV {
         };
         return(output);
     }
+
+    public ArrayList<Account> fillArray(ArrayList<Account> accounts){
+        ArrayList<Account> accountsOut = new ArrayList<Account>();
+        ArrayList<String[]> fileContents = new ArrayList<String[]>();
+        fileContents = getData();
+        for (int i = 0; i < fileContents.size(); i++){
+            accountsOut.add(new Account(fileContents.get(i)[0], fileContents.get(i)[1], fileContents.get(i)[2], fileContents.get(i)[3], Double.parseDouble(fileContents.get(i)[4])));
+        }
+        return(accountsOut);
+    }
 }
