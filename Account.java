@@ -11,7 +11,14 @@ public class Account {
         this.accountNumber = accountNumberIn;
         this.accountType = accountTypeIn;
         this.balance = balanceIn;
+    }
 
+    public Account(){
+        this.name = "John Doe";
+        this.address = "123 Street City";
+        this.accountNumber = "00-0000-0000000-00";
+        this.accountType = "Everyday";
+        this.balance = 0.00;
     }
 
     public void setName(String nameIn){

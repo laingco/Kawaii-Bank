@@ -25,16 +25,7 @@ public class GUI {
         mainPanel = new JPanel(cardLayout);
 
         JPanel homeScreen = createHomePanel();
-        JPanel accountListScreen = createAccountListPanel();
-
         mainPanel.add(homeScreen, "Home");
-        mainPanel.add(accountListScreen, "Accounts");
-
-        ArrayList<JPanel> infoScreens = new ArrayList<JPanel>();
-        for (int i = 0; i < accounts.size(); i++){
-            infoScreens.add(createAccountInfoPanel(i));
-            mainPanel.add(infoScreens.get(i), accounts.get(i).getAccountNumber());
-        }
 
         jframe.getContentPane().add(mainPanel);
         jframe.setVisible(true);
@@ -49,17 +40,32 @@ public class GUI {
         panel.add(title, BorderLayout.NORTH);
 
         JButton listAccounts = new JButton("List accounts");
-        listAccounts.addActionListener(e -> cardLayout.show(mainPanel, "Accounts"));
+        listAccounts.addActionListener(e -> {
+            mainPanel.add(createAccountListPanel(), "List accounts");
+            cardLayout.show(mainPanel, "List accounts");
+            ArrayList<JPanel> infoScreens = new ArrayList<JPanel>();
+            for (int i = 0; i < accounts.size(); i++){
+                infoScreens.add(createAccountInfoPanel(i));
+                mainPanel.add(infoScreens.get(i), accounts.get(i).getAccountNumber());
+            }
+        });
         panel.add(listAccounts);
 
         JButton addAccounts = new JButton("Add account");
+        addAccounts.addActionListener(e -> {
+            mainPanel.add(createAddAccountPanel(), "Add account");
+            cardLayout.show(mainPanel, "Add account");
+        });
         panel.add(addAccounts);
 
         JButton removeAccounts = new JButton("Remove account");
         panel.add(removeAccounts);
 
         JButton exit = new JButton("Save and exit");
-        exit.addActionListener(e -> {new EditCSV().setData(accounts); jframe.dispose();});
+        exit.addActionListener(e -> {
+            new EditCSV().setData(accounts); 
+            jframe.dispose();
+        });
         panel.add(exit);
 
         return(panel);
@@ -73,7 +79,9 @@ public class GUI {
         for (int i = 0; i < accounts.size(); i++){
             JButton button = new JButton(accounts.get(i).getName() + " | " + accounts.get(i).getAccountType() + " | " +  Double.toString(accounts.get(i).getBalance()));
             int x = i;
-            button.addActionListener(e -> cardLayout.show(mainPanel, accounts.get(x).getAccountNumber()));
+            button.addActionListener(e -> {
+                cardLayout.show(mainPanel, accounts.get(x).getAccountNumber());
+            });
             accountListPanel.add(button);
         }
 
@@ -84,10 +92,64 @@ public class GUI {
         return(panel);
     }
 
+    public JPanel createAddAccountPanel(){
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(createBackBar("Home"), BorderLayout.NORTH);
+
+        JPanel addAccountPanel = new JPanel(new GridLayout(6, 2, 0, 20));
+        String[] labels = {"Name: ", "Address: ", "Account number: ", "Account type: ", "Balance: "};
+        String[] choices = {"Everyday", "Current", "Savings"};
+        String[] defaults = {"John Doe", "123 Street City", "00-0000-0000000-00", "Everyday", "0.00"};
+        JButton save = new JButton("Save");
+        accounts.add(new Account());
+
+        for (int i = 0; i < 5; i++){
+            JLabel text = new JLabel(labels[i], JLabel.LEFT);
+            text.setFont(new Font("Arial", Font.PLAIN, 25));
+            addAccountPanel.add(text);
+
+            if (i != 3){
+                JTextField textField = new JTextField(defaults[i], 10);
+                addAccountPanel.add(textField);
+            }else{
+                JComboBox<String> textField = new JComboBox<String>(choices);
+                addAccountPanel.add(textField);
+            }
+
+            final int x = i;
+            save.addActionListener(e -> {
+                final int compIndex = (x+1)*2 - 1;
+                final int index = accounts.size()-1;
+
+                if (x == 3) {
+                    JComboBox<String> textField = (JComboBox<String>) addAccountPanel.getComponent(compIndex);
+                    accounts.get(index).setData(textField.getSelectedItem().toString(), x); 
+                } else {
+                    JTextField textField = (JTextField) addAccountPanel.getComponent(compIndex);
+                    accounts.get(index).setData(textField.getText(), x);
+                }
+
+                if (x == 4){
+                    mainPanel.add(createHomePanel(), "Home");
+                    cardLayout.show(mainPanel, "Home");
+                }
+            }); 
+        }
+
+        addAccountPanel.add(save);
+
+        panel.add(addAccountPanel, BorderLayout.CENTER);
+        
+        return(panel);
+    }
+
     public JPanel createBackBar(String panelName){
         JButton back = new JButton("Back");
-        back.addActionListener(e -> {mainPanel.add(createAccountListPanel(), "Accounts"); 
-            cardLayout.show(mainPanel, panelName);});
+        back.addActionListener(e -> {
+            mainPanel.add(createAccountListPanel(), "Accounts"); 
+            cardLayout.show(mainPanel, panelName);
+        });
+
         JPanel backBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         backBar.add(back);
         return(backBar);
@@ -100,7 +162,7 @@ public class GUI {
         JPanel infoPanel = new JPanel(new GridLayout(5, 3, 0, 20));
         
         String[] labels = {"Name: ", "Address: ", "Account number: ", "Account type: ", "Balance: "};
-        String[] choices = {"Current", "Everyday", "Savings"};
+        String[] choices = {"Everyday", "Current", "Savings"};        
         ArrayList<JButton> textSave = new ArrayList<JButton>();
 
         for (int i = 0; i < 5; i++){
@@ -113,6 +175,7 @@ public class GUI {
                 infoPanel.add(textField);
             }else{
                 JComboBox<String> textField = new JComboBox<String>(choices);
+                textField.setSelectedItem(accounts.get(accountIndex).getAccountType());
                 infoPanel.add(textField);
             }
 
@@ -128,7 +191,8 @@ public class GUI {
                     JComboBox<String> textField = (JComboBox<String>) infoPanel.getComponent(3 * x + 1);
                     accounts.get(accountIndex).setData(textField.getSelectedItem().toString(), x);
                 }
-                mainPanel.add(createAccountListPanel(), "Accounts");});
+                mainPanel.add(createAccountListPanel(), "Accounts");
+            });
             infoPanel.add(textSave.get(i));
         }
 
