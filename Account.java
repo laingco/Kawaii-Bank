@@ -4,6 +4,8 @@ public class Account {
     private String accountNumber;
     private String accountType;
     private double balance;
+    private String[] choices = {"Everyday", "Current", "Savings"};
+    private String[] defaults = {"John Doe", "123 Street City", "00-0000-0000000-00", "Everyday", "0.00"};
 
     public Account(String nameIn, String addressIn, String accountNumberIn, String accountTypeIn, double balanceIn){
         this.name = nameIn;
@@ -14,11 +16,11 @@ public class Account {
     }
 
     public Account(){
-        this.name = "John Doe";
-        this.address = "123 Street City";
-        this.accountNumber = "00-0000-0000000-00";
-        this.accountType = "Everyday";
-        this.balance = 0.00;
+        this.name = defaults[0];
+        this.address = defaults[1];
+        this.accountNumber = defaults[2];
+        this.accountType = choices[0];
+        this.balance = Double.parseDouble(defaults[4]);
     }
 
     public void setName(String nameIn){
@@ -78,25 +80,40 @@ public class Account {
         }
     }
 
-    public void setData(String input, int index){
+    public Boolean setData(String input, int index){
         switch (index){
             case 0:
+                if (input.isBlank()){
+                    return(false);
+                }
                 this.name = input;
-                break;
+                return(true);
             case 1:
+                if (input.isBlank()){
+                    return(false);
+                }
                 this.address = input;
-                break;
+                return(true);
             case 2:
+                if (!(input.length() == 18)){
+                    return(false);
+                }else if (!(input.charAt(2) == '-' && input.charAt(7) == '-' && input.charAt(15) == '-')){
+                    return(false);
+                }
                 this.accountNumber = input;
-                break;
+                return(true);
             case 3:
                 this.accountType = input;
-                break;
+                return(true);
             case 4:
-                this.balance = Double.parseDouble(input);
-                break;
+                try{
+                    this.balance = Double.parseDouble(input);
+                    return(true);
+                }catch(NumberFormatException e){
+                    return(false);
+                }
             default:
-                break;
+            return(true);
         }
     }
 
@@ -106,5 +123,9 @@ public class Account {
         System.out.print(", Account Number: " + this.accountNumber);
         System.out.print(", Account type: " + this.accountType);
         System.out.println(", Balance: " + this.balance);
+    }
+
+    public String[] getChoices(){
+        return(choices);
     }
 }
