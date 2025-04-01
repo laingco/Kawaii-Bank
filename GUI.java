@@ -59,6 +59,10 @@ public class GUI {
         panel.add(addAccounts);
 
         JButton removeAccounts = new JButton("Remove account");
+        removeAccounts.addActionListener(e -> {
+            mainPanel.add(createRemoveAccountPanel(), "Remove account");
+            cardLayout.show(mainPanel, "Remove account");
+        });
         panel.add(removeAccounts);
 
         JButton exit = new JButton("Save and exit");
@@ -197,6 +201,28 @@ public class GUI {
         }
 
         panel.add(infoPanel, BorderLayout.CENTER);
+
+        return(panel);
+    }
+
+    public JPanel createRemoveAccountPanel(){
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(createBackBar("Home"), BorderLayout.NORTH);
+        
+        JPanel accountListPanel = new JPanel(new GridLayout(accounts.size(), 1, 0, 10));
+        for (int i = 0; i < accounts.size(); i++){
+            JButton button = new JButton(accounts.get(i).getName() + " | " + accounts.get(i).getAccountType() + " | " +  Double.toString(accounts.get(i).getBalance()));
+            final int x = i;
+            button.addActionListener(e -> {
+                accounts.remove(x);
+                accountListPanel.remove(accountListPanel.getComponent(x));
+            });
+            accountListPanel.add(button);
+        }
+
+        JScrollPane scrollPanel = new JScrollPane(accountListPanel);
+        scrollPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        panel.add(scrollPanel, BorderLayout.CENTER);
 
         return(panel);
     }
