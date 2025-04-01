@@ -102,8 +102,6 @@ public class GUI {
 
         JPanel addAccountPanel = new JPanel(new GridLayout(6, 2, 0, 20));
         String[] labels = {"Name: ", "Address: ", "Account number: ", "Account type: ", "Balance: "};
-        String[] choices = {"Everyday", "Current", "Savings"};
-        String[] defaults = {"John Doe", "123 Street City", "00-0000-0000000-00", "Everyday", "0.00"};
         JButton save = new JButton("Save");
         accounts.add(new Account());
 
@@ -113,10 +111,11 @@ public class GUI {
             addAccountPanel.add(text);
 
             if (i != 3){
-                JTextField textField = new JTextField(defaults[i], 10);
+                JTextField textField = new JTextField(accounts.getLast().getData(i), 10);
                 addAccountPanel.add(textField);
             }else{
-                JComboBox<String> textField = new JComboBox<String>(choices);
+                JComboBox<String> textField = new JComboBox<String>(accounts.getLast().getChoices());
+                textField.setSelectedIndex(0);
                 addAccountPanel.add(textField);
             }
 
@@ -130,7 +129,10 @@ public class GUI {
                     accounts.get(index).setData(textField.getSelectedItem().toString(), x); 
                 } else {
                     JTextField textField = (JTextField) addAccountPanel.getComponent(compIndex);
-                    accounts.get(index).setData(textField.getText(), x);
+                    while (!accounts.get(index).setData(textField.getText(), x)){
+                        textField.setBackground(new Color(255,0,0));
+                    }
+                    textField.setOpaque(true);
                 }
 
                 if (x == 4){
