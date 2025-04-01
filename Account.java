@@ -128,4 +128,8 @@ public class Account {
     public String[] getChoices(){
         return(choices);
     }
+
+    public String[] getDefaults(){
+        return(defaults);
+    }
 }

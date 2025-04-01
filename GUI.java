@@ -39,7 +39,7 @@ public class GUI {
         title.setFont(new Font("Arial", Font.PLAIN, 45)); 
         panel.add(title, BorderLayout.NORTH);
 
-        JButton listAccounts = new JButton("List accounts");
+        JButton listAccounts = new JButton("List/Edit accounts");
         listAccounts.addActionListener(e -> {
             mainPanel.add(createAccountListPanel(), "List accounts");
             cardLayout.show(mainPanel, "List accounts");
@@ -77,7 +77,7 @@ public class GUI {
 
     public JPanel createAccountListPanel(){
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(createBackBar("Home"), BorderLayout.NORTH);
+        panel.add(createBackBar("Home", "Accounts list"), BorderLayout.NORTH);
         
         JPanel accountListPanel = new JPanel(new GridLayout(accounts.size(), 1, 0, 10));
         for (int i = 0; i < accounts.size(); i++){
@@ -98,12 +98,67 @@ public class GUI {
 
     public JPanel createAddAccountPanel(){
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(createBackBar("Home"), BorderLayout.NORTH);
+        panel.add(createBackBar("Home", "Create new account"), BorderLayout.NORTH);
 
         JPanel addAccountPanel = new JPanel(new GridLayout(6, 2, 0, 20));
         String[] labels = {"Name: ", "Address: ", "Account number: ", "Account type: ", "Balance: "};
-        JButton save = new JButton("Save");
-        accounts.add(new Account());
+        JButton save = new JButton("Create account");
+        
+        /*save.addActionListener(e -> {
+            accounts.add(new Account(
+                ((JTextField)addAccountPanel.getComponent(1)).getText(),
+                ((JTextField)addAccountPanel.getComponent(3)).getText(),
+                ((JTextField)addAccountPanel.getComponent(5)).getText(),
+                accounts.get(0).getChoices()[((JComboBox)addAccountPanel.getComponent(7)).getSelectedIndex()],
+                Double.parseDouble(((JTextField)addAccountPanel.getComponent(9)).getText())
+            ));
+            
+            mainPanel.add(createHomePanel(), "Home");
+            cardLayout.show(mainPanel, "Home");
+        }); */
+
+        /*save.addActionListener(e -> {
+            accounts.add(new Account());
+            final int index = accounts.size()-1;
+            
+            JTextField textField1 = (JTextField) addAccountPanel.getComponent(1);
+            if (!accounts.get(index).setData(textField1.getText(), 0)){
+                addAccountPanel.getComponent(1).setForeground(new Color(255,0,0));
+                return;
+            }else{
+                addAccountPanel.getComponent(1).setForeground(new Color(255,255,255));
+            }
+
+            JTextField textField2 = (JTextField) addAccountPanel.getComponent(3);
+            if (!accounts.get(index).setData(textField2.getText(), 1)){
+                addAccountPanel.getComponent(3).setForeground(new Color(255,0,0));
+                return;
+            }else{
+                addAccountPanel.getComponent(3).setForeground(new Color(255,255,255));
+            }
+
+            JTextField textField3 = (JTextField) addAccountPanel.getComponent(5);
+            if (!accounts.get(index).setData(textField3.getText(), 2)){
+                addAccountPanel.getComponent(5).setForeground(new Color(255,0,0));
+                return;
+            }else{
+                addAccountPanel.getComponent(5).setForeground(new Color(255,255,255));
+            }
+
+            JComboBox<String> textField4 = (JComboBox<String>) addAccountPanel.getComponent(7);
+            accounts.get(index).setData(textField4.getSelectedItem().toString(), 3);
+
+            JTextField textField5 = (JTextField) addAccountPanel.getComponent(9);
+            if (!accounts.get(index).setData(textField5.getText(), 4)){
+                addAccountPanel.getComponent(9).setForeground(new Color(255,0,0));
+                return;
+            }else{
+                addAccountPanel.getComponent(9).setForeground(new Color(255,255,255));
+            }
+
+            mainPanel.add(createHomePanel(), "Home");
+            cardLayout.show(mainPanel, "Home");
+        });*/
 
         for (int i = 0; i < 5; i++){
             JLabel text = new JLabel(labels[i], JLabel.LEFT);
@@ -111,16 +166,21 @@ public class GUI {
             addAccountPanel.add(text);
 
             if (i != 3){
-                JTextField textField = new JTextField(accounts.getLast().getData(i), 10);
+                JTextField textField = new JTextField(accounts.get(accounts.size()-1).getDefaults()[i], 10);
                 addAccountPanel.add(textField);
             }else{
-                JComboBox<String> textField = new JComboBox<String>(accounts.getLast().getChoices());
+                JComboBox<String> textField = new JComboBox<String>(accounts.get(accounts.size()-1).getChoices());
                 textField.setSelectedIndex(0);
                 addAccountPanel.add(textField);
             }
 
-            final int x = i;
+            final int x = 4-i;
             save.addActionListener(e -> {
+                boolean validAnswer = true;
+                if (x == 0){
+                    accounts.add(new Account());
+                }
+                
                 final int compIndex = (x+1)*2 - 1;
                 final int index = accounts.size()-1;
 
@@ -129,17 +189,27 @@ public class GUI {
                     accounts.get(index).setData(textField.getSelectedItem().toString(), x); 
                 } else {
                     JTextField textField = (JTextField) addAccountPanel.getComponent(compIndex);
-                    while (!accounts.get(index).setData(textField.getText(), x)){
-                        textField.setBackground(new Color(255,0,0));
+                    if (!accounts.get(index).setData(textField.getText(), x)){
+                        addAccountPanel.getComponent(compIndex).setForeground(new Color(255,0,0));
+                        accounts.remove(index);
+                        System.out.println("WOOO");
+                        validAnswer = false;
+                    }else{
+                        addAccountPanel.getComponent(compIndex).setForeground(new Color(255,255,255));
+                        validAnswer = true;
                     }
-                    textField.setOpaque(true);
+                }
+                System.out.println(x);
+                if (!validAnswer){
+                    accounts.add(new Account());
                 }
 
-                if (x == 4){
+                if (x == 4 && validAnswer){
                     mainPanel.add(createHomePanel(), "Home");
                     cardLayout.show(mainPanel, "Home");
+                    System.out.println("WEEEEE");
                 }
-            }); 
+            });
         }
 
         addAccountPanel.add(save);
@@ -149,21 +219,24 @@ public class GUI {
         return(panel);
     }
 
-    public JPanel createBackBar(String panelName){
+    public JPanel createBackBar(String panelName, String pageName){
         JButton back = new JButton("Back");
         back.addActionListener(e -> {
             mainPanel.add(createAccountListPanel(), "Accounts"); 
             cardLayout.show(mainPanel, panelName);
         });
 
+        JLabel title = new JLabel(pageName);
+
         JPanel backBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         backBar.add(back);
+        backBar.add(title);
         return(backBar);
     }
 
     public JPanel createAccountInfoPanel(int accountIndex){
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(createBackBar("Accounts"), BorderLayout.NORTH);
+        panel.add(createBackBar("Accounts", "Account info"), BorderLayout.NORTH);
 
         JPanel infoPanel = new JPanel(new GridLayout(5, 3, 0, 20));
         
@@ -209,7 +282,7 @@ public class GUI {
 
     public JPanel createRemoveAccountPanel(){
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(createBackBar("Home"), BorderLayout.NORTH);
+        panel.add(createBackBar("Home", "Remove account(s)"), BorderLayout.NORTH);
         
         JPanel accountListPanel = new JPanel(new GridLayout(accounts.size(), 1, 0, 10));
         for (int i = 0; i < accounts.size(); i++){
@@ -218,6 +291,8 @@ public class GUI {
             button.addActionListener(e -> {
                 accounts.remove(x);
                 accountListPanel.remove(accountListPanel.getComponent(x));
+                mainPanel.add(createRemoveAccountPanel(), "Remove account");
+                cardLayout.show(mainPanel, "Remove account");
             });
             accountListPanel.add(button);
         }
