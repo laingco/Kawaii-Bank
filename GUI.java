@@ -103,62 +103,6 @@ public class GUI {
         JPanel addAccountPanel = new JPanel(new GridLayout(6, 2, 0, 20));
         String[] labels = {"Name: ", "Address: ", "Account number: ", "Account type: ", "Balance: "};
         JButton save = new JButton("Create account");
-        
-        /*save.addActionListener(e -> {
-            accounts.add(new Account(
-                ((JTextField)addAccountPanel.getComponent(1)).getText(),
-                ((JTextField)addAccountPanel.getComponent(3)).getText(),
-                ((JTextField)addAccountPanel.getComponent(5)).getText(),
-                accounts.get(0).getChoices()[((JComboBox)addAccountPanel.getComponent(7)).getSelectedIndex()],
-                Double.parseDouble(((JTextField)addAccountPanel.getComponent(9)).getText())
-            ));
-            
-            mainPanel.add(createHomePanel(), "Home");
-            cardLayout.show(mainPanel, "Home");
-        }); */
-
-        /*save.addActionListener(e -> {
-            accounts.add(new Account());
-            final int index = accounts.size()-1;
-            
-            JTextField textField1 = (JTextField) addAccountPanel.getComponent(1);
-            if (!accounts.get(index).setData(textField1.getText(), 0)){
-                addAccountPanel.getComponent(1).setForeground(new Color(255,0,0));
-                return;
-            }else{
-                addAccountPanel.getComponent(1).setForeground(new Color(255,255,255));
-            }
-
-            JTextField textField2 = (JTextField) addAccountPanel.getComponent(3);
-            if (!accounts.get(index).setData(textField2.getText(), 1)){
-                addAccountPanel.getComponent(3).setForeground(new Color(255,0,0));
-                return;
-            }else{
-                addAccountPanel.getComponent(3).setForeground(new Color(255,255,255));
-            }
-
-            JTextField textField3 = (JTextField) addAccountPanel.getComponent(5);
-            if (!accounts.get(index).setData(textField3.getText(), 2)){
-                addAccountPanel.getComponent(5).setForeground(new Color(255,0,0));
-                return;
-            }else{
-                addAccountPanel.getComponent(5).setForeground(new Color(255,255,255));
-            }
-
-            JComboBox<String> textField4 = (JComboBox<String>) addAccountPanel.getComponent(7);
-            accounts.get(index).setData(textField4.getSelectedItem().toString(), 3);
-
-            JTextField textField5 = (JTextField) addAccountPanel.getComponent(9);
-            if (!accounts.get(index).setData(textField5.getText(), 4)){
-                addAccountPanel.getComponent(9).setForeground(new Color(255,0,0));
-                return;
-            }else{
-                addAccountPanel.getComponent(9).setForeground(new Color(255,255,255));
-            }
-
-            mainPanel.add(createHomePanel(), "Home");
-            cardLayout.show(mainPanel, "Home");
-        });*/
 
         for (int i = 0; i < 5; i++){
             JLabel text = new JLabel(labels[i], JLabel.LEFT);
@@ -173,44 +117,34 @@ public class GUI {
                 textField.setSelectedIndex(0);
                 addAccountPanel.add(textField);
             }
-
-            final int x = 4-i;
-            save.addActionListener(e -> {
-                boolean validAnswer = true;
-                if (x == 0){
-                    accounts.add(new Account());
-                }
-                
-                final int compIndex = (x+1)*2 - 1;
-                final int index = accounts.size()-1;
-
-                if (x == 3) {
-                    JComboBox<String> textField = (JComboBox<String>) addAccountPanel.getComponent(compIndex);
-                    accounts.get(index).setData(textField.getSelectedItem().toString(), x); 
-                } else {
-                    JTextField textField = (JTextField) addAccountPanel.getComponent(compIndex);
-                    if (!accounts.get(index).setData(textField.getText(), x)){
-                        addAccountPanel.getComponent(compIndex).setForeground(new Color(255,0,0));
-                        accounts.remove(index);
-                        System.out.println("WOOO");
-                        validAnswer = false;
-                    }else{
-                        addAccountPanel.getComponent(compIndex).setForeground(new Color(255,255,255));
-                        validAnswer = true;
-                    }
-                }
-                System.out.println(x);
-                if (!validAnswer){
-                    accounts.add(new Account());
-                }
-
-                if (x == 4 && validAnswer){
-                    mainPanel.add(createHomePanel(), "Home");
-                    cardLayout.show(mainPanel, "Home");
-                    System.out.println("WEEEEE");
-                }
-            });
         }
+
+        save.addActionListener(e -> {
+            accounts.add(new Account());
+            final int index = accounts.size()-1;
+            boolean errors = false;
+            
+            for (int i = 0; i < 5 && i != 3; i++){
+                int compIndex = 2 * i + 1;
+                JTextField textField = (JTextField) addAccountPanel.getComponent(compIndex);
+                if (!accounts.get(index).setData(textField.getText(), i)){
+                    addAccountPanel.getComponent(compIndex).setForeground(new Color(255,0,0));
+                    errors = true;
+                }else{
+                    addAccountPanel.getComponent(compIndex).setForeground(new Color(0,0,0));
+                }
+            }
+
+            JComboBox<String> textField4 = (JComboBox<String>) addAccountPanel.getComponent(7);
+            accounts.get(index).setData(textField4.getSelectedItem().toString(), 3);
+
+            if (!errors){
+                mainPanel.add(createHomePanel(), "Home");
+                cardLayout.show(mainPanel, "Home");
+            }else{
+                accounts.remove(index);
+            }
+        });
 
         addAccountPanel.add(save);
 
@@ -222,7 +156,16 @@ public class GUI {
     public JPanel createBackBar(String panelName, String pageName){
         JButton back = new JButton("Back");
         back.addActionListener(e -> {
-            mainPanel.add(createAccountListPanel(), "Accounts"); 
+            mainPanel.add(createAccountListPanel(), "List accounts"); 
+            mainPanel.add(createAddAccountPanel(), "Add account");
+            mainPanel.add(createRemoveAccountPanel(), "Remove account");
+            
+            ArrayList<JPanel> infoScreens = new ArrayList<JPanel>();
+            for (int i = 0; i < accounts.size(); i++){
+                infoScreens.add(createAccountInfoPanel(i));
+                mainPanel.add(infoScreens.get(i), accounts.get(i).getAccountNumber());
+            }
+
             cardLayout.show(mainPanel, panelName);
         });
 
@@ -236,7 +179,7 @@ public class GUI {
 
     public JPanel createAccountInfoPanel(int accountIndex){
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(createBackBar("Accounts", "Account info"), BorderLayout.NORTH);
+        panel.add(createBackBar("List accounts", "Account info"), BorderLayout.NORTH);
 
         JPanel infoPanel = new JPanel(new GridLayout(5, 3, 0, 20));
         
@@ -261,13 +204,18 @@ public class GUI {
             final int x = i;
             textSave.add(new JButton("Save"));
             textSave.get(i).addActionListener(e -> {
+                //Gets the new JComboBox from the original definition of the old one using getComponent() and since I know how many components are made in each run of the for loop
+                //I use 3 * x (x = i at original definition of listener) which would give me the associated JLabel to the entry but since i want the JComboBox (which is the next component added) I add 1.
+                int compIndex = 3 * x + 1;
                 if (x != 3) { 
-                    JTextField textField = (JTextField) infoPanel.getComponent(3 * x + 1);
-                    accounts.get(accountIndex).setData(textField.getText(), x);
+                    JTextField textField = (JTextField) infoPanel.getComponent(compIndex);
+                    if (!accounts.get(accountIndex).setData(textField.getText(), x)){
+                        infoPanel.getComponent(compIndex).setForeground(new Color(255,0,0));
+                    }else{
+                        infoPanel.getComponent(compIndex).setForeground(new Color(0,0,0));
+                    }
                 } else {
-                    //Gets the new JComboBox from the original definition of the old one using getComponent() and since I know how many components are made in each run of the for loop
-                    //I use 3 * x (x = i at original definition of listener) which would give me the associated JLabel to the entry but since i want the JComboBox (which is the next component added) I add 1.
-                    JComboBox<String> textField = (JComboBox<String>) infoPanel.getComponent(3 * x + 1);
+                    JComboBox<String> textField = (JComboBox<String>) infoPanel.getComponent(compIndex);
                     accounts.get(accountIndex).setData(textField.getSelectedItem().toString(), x);
                 }
                 mainPanel.add(createAccountListPanel(), "Accounts");

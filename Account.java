@@ -107,13 +107,19 @@ public class Account {
                 return(true);
             case 4:
                 try{
-                    this.balance = Double.parseDouble(input);
-                    return(true);
-                }catch(NumberFormatException e){
+                    if (!(this.accountType == "Current") && Double.parseDouble(input) < 0 || //Only allows current accounts to overdraft
+                    this.accountType == "Current" && Double.parseDouble(input) < -1000 ||    //Only allows current accounts to go $1000 into overdraft
+                    (Double.parseDouble(input) - this.balance) < -5000){                     //Only allows withdrawls less than $5000
+                        return(false);
+                    }else{
+                        this.balance = Double.parseDouble(input);
+                        return(true);
+                    }
+                }catch(NumberFormatException e){ //Only allows strings containing doubles
                     return(false);
                 }
             default:
-            return(true);
+                return(true);
         }
     }
 
