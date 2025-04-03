@@ -216,7 +216,11 @@ public class GUI {
                     }
                 } else {
                     JComboBox<String> textField = (JComboBox<String>) infoPanel.getComponent(compIndex);
-                    accounts.get(accountIndex).setData(textField.getSelectedItem().toString(), x);
+                    if (!accounts.get(accountIndex).setData(textField.getSelectedItem().toString(), x)){
+                        infoPanel.getComponent(compIndex).setForeground(new Color(255,0,0));
+                    }else{
+                        infoPanel.getComponent(compIndex).setForeground(new Color(0,0,0));
+                    }
                 }
                 mainPanel.add(createAccountListPanel(), "Accounts");
             });

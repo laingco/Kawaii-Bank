@@ -103,6 +103,11 @@ public class Account {
                 this.accountNumber = input;
                 return(true);
             case 3:
+                if ((this.balance < 0) && (input != "Current")){         //Only allows account to be current if balance < 0
+                    return(false);
+                }else if((this.balance < -1000) && (input == "Current")){ //Does not allow current account if past overdraft limit
+                    return(false);
+                }
                 this.accountType = input;
                 return(true);
             case 4:
