@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 
 public class GUI {
@@ -9,7 +11,9 @@ public class GUI {
     private ArrayList<Account> accounts;
     private int SCREEN_WIDTH;
     private int SCREEN_HEIGHT;
-    private int mainMenuItems = 5; //Number of items shown in main menu
+    private int mainMenuItems = 6; //Number of items shown in main menu
+    public BigDecimal net = new BigDecimal(0.0);
+    public BigDecimal sum = new BigDecimal(0.0);
 
     public GUI(ArrayList<Account> accounts, int SCREEN_WIDTH, int SCREEN_HEIGHT){
         this.accounts = accounts;
@@ -18,6 +22,10 @@ public class GUI {
     }
 
     public void initialize(){
+        for (int i = 0; i < accounts.size(); i++){
+            net = net.add(new BigDecimal(accounts.get(i).getBalance()));
+        }
+
         jframe.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         jframe.setSize(this.SCREEN_WIDTH, this.SCREEN_HEIGHT);
 
@@ -43,14 +51,16 @@ public class GUI {
         listAccounts.addActionListener(e -> {
             mainPanel.add(createAccountListPanel(), "List accounts");
             cardLayout.show(mainPanel, "List accounts");
-            ArrayList<JPanel> infoScreens = new ArrayList<JPanel>();
-            for (int i = 0; i < accounts.size(); i++){
-                infoScreens.add(createAccountInfoPanel(i));
-                mainPanel.add(infoScreens.get(i), accounts.get(i).getAccountNumber());
-            }
         });
         panel.add(listAccounts);
 
+        JButton depositMoney = new JButton("Deposit/Withdraw money");
+        depositMoney.addActionListener(e -> {
+            mainPanel.add(createMoneyPanel(), "Deposit/Withdraw money");
+            cardLayout.show(mainPanel, "Deposit/Withdraw money");
+        });
+        panel.add(depositMoney);
+ 
         JButton addAccounts = new JButton("Add account");
         addAccounts.addActionListener(e -> {
             mainPanel.add(createAddAccountPanel(), "Add account");
@@ -67,6 +77,14 @@ public class GUI {
 
         JButton exit = new JButton("Save and exit");
         exit.addActionListener(e -> {
+            for (int i = 0; i < accounts.size(); i++){
+                sum = sum.add(new BigDecimal(accounts.get(i).getBalance()));
+            }
+            System.out.println("Total money in bank: " + sum.setScale(2,RoundingMode.HALF_EVEN).toString());
+
+            net = net.subtract(sum);
+            System.out.println("Net deposits/withdrawls: " + net.setScale(2,RoundingMode.HALF_EVEN).toString());
+
             new EditCSV().setData(accounts); 
             jframe.dispose();
         });
@@ -78,6 +96,12 @@ public class GUI {
     public JPanel createAccountListPanel(){
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(createBackBar("Home", "Accounts list"), BorderLayout.NORTH);
+
+        ArrayList<JPanel> infoScreens = new ArrayList<JPanel>();
+        for (int i = 0; i < accounts.size(); i++){
+            infoScreens.add(createAccountInfoPanel(i));
+            mainPanel.add(infoScreens.get(i), accounts.get(i).getAccountNumber());
+        }
         
         JPanel accountListPanel = new JPanel(new GridLayout(accounts.size(), 1, 0, 10));
         for (int i = 0; i < accounts.size(); i++){
@@ -100,16 +124,16 @@ public class GUI {
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(createBackBar("Home", "Create new account"), BorderLayout.NORTH);
 
-        JPanel addAccountPanel = new JPanel(new GridLayout(6, 2, 0, 20));
-        String[] labels = {"Name: ", "Address: ", "Account number: ", "Account type: ", "Balance: "};
+        JPanel addAccountPanel = new JPanel(new GridLayout(4, 2, 0, 20));
+        String[] labels = {"Name: ", "Address: ", "Account type: "};
         JButton save = new JButton("Create account");
 
-        for (int i = 0; i < 5; i++){
+        for (int i = 0; i < 3; i++){
             JLabel text = new JLabel(labels[i], JLabel.LEFT);
             text.setFont(new Font("Arial", Font.PLAIN, 25));
             addAccountPanel.add(text);
 
-            if (i != 3){
+            if (i != 2){
                 JTextField textField = new JTextField(accounts.get(accounts.size()-1).getDefaults()[i], 10);
                 addAccountPanel.add(textField);
             }else{
@@ -123,26 +147,28 @@ public class GUI {
             accounts.add(new Account());
             final int index = accounts.size()-1;
             boolean errors = false;
+            String inputs[] = new String[3];
             
-            for (int i = 0; i < 5 && i != 3; i++){
+            for (int i = 0; i < 2; i++){
                 int compIndex = 2 * i + 1;
                 JTextField textField = (JTextField) addAccountPanel.getComponent(compIndex);
-                if (!accounts.get(index).setData(textField.getText(), i)){
+                if (!accounts.get(index).checkData(textField.getText(), i)){
                     addAccountPanel.getComponent(compIndex).setForeground(new Color(255,0,0));
                     errors = true;
                 }else{
+                    inputs[i] = textField.getText();
                     addAccountPanel.getComponent(compIndex).setForeground(new Color(0,0,0));
                 }
             }
 
-            JComboBox<String> textField4 = (JComboBox<String>) addAccountPanel.getComponent(7);
-            accounts.get(index).setData(textField4.getSelectedItem().toString(), 3);
+            JComboBox<String> textField3 = (JComboBox<String>) addAccountPanel.getComponent(5);
+            inputs[2] = textField3.getSelectedItem().toString();
 
+            accounts.remove(index);
             if (!errors){
+                accounts.add(new Account(accounts, inputs[0], inputs[1], inputs[2]));
                 mainPanel.add(createHomePanel(), "Home");
                 cardLayout.show(mainPanel, "Home");
-            }else{
-                accounts.remove(index);
             }
         });
 
@@ -252,6 +278,71 @@ public class GUI {
         JScrollPane scrollPanel = new JScrollPane(accountListPanel);
         scrollPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         panel.add(scrollPanel, BorderLayout.CENTER);
+
+        return(panel);
+    }
+
+    public JPanel createMoneyPanel(){
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(createBackBar("Home", "Deposit/Withdraw money"), BorderLayout.NORTH);
+        
+        JPanel moneyPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        
+        JLabel accountSelectLabel = new JLabel("Select account: ");
+        moneyPanel.add(accountSelectLabel);
+        
+        String[] menuItems = new String[accounts.size()];
+        for (int i = 0; i < accounts.size(); i++){
+            menuItems[i] = accounts.get(i).getName() + " " + (Integer.parseInt(accounts.get(i).getAccountNumber().substring(17)) + 1) + " | " + accounts.get(i).getAccountType() + " | " +  Double.toString(accounts.get(i).getBalance());
+        }
+        JComboBox<String> accountSelect = new JComboBox<String>(menuItems);
+        moneyPanel.add(accountSelect);
+
+        JLabel valueLabel = new JLabel("Withdraw/Deposit amount: ");
+        moneyPanel.add(valueLabel);
+
+        JTextField valueField = new JTextField("0");
+        moneyPanel.add(valueField);
+
+        String[] labels = {"Deposit", "Withdraw"};
+        for (int i = 0; i < 2; i++){
+            JButton button = new JButton(labels[i]);
+            final int x = i;
+            button.addActionListener(e -> {
+                JComboBox<String> jBox = (JComboBox<String>)moneyPanel.getComponent(1);
+                JTextField jField = (JTextField)moneyPanel.getComponent(3);
+                Boolean valid = true;
+                for (int j = 0; j < accounts.size(); j++){
+                    Account selectedAccount = accounts.get(j);
+                    if((selectedAccount.getName() + " " + (Integer.parseInt(selectedAccount.getAccountNumber().substring(17)) + 1) + " | " +
+                    selectedAccount.getAccountType() + " | " +  Double.toString(selectedAccount.getBalance())).equals(jBox.getSelectedItem().toString())){
+                        if (x == 0){
+                            if (!selectedAccount.setData(new BigDecimal(selectedAccount.getBalance()).add(new BigDecimal(jField.getText())).setScale(2, RoundingMode.HALF_EVEN).toString(), 4)){ 
+                                moneyPanel.getComponent(3).setForeground(new Color(255,0,0));
+                                valid = false;
+                            }else{
+                                moneyPanel.getComponent(3).setForeground(new Color(0,0,0));
+                            }
+                        }else{
+                            //BigDecimal must be used here to negate any rounding error from subtraction
+                            if (!selectedAccount.setData(new BigDecimal(selectedAccount.getBalance()).subtract(new BigDecimal(jField.getText())).setScale(2, RoundingMode.HALF_EVEN).toString(), 4)){
+                                moneyPanel.getComponent(3).setForeground(new Color(255,0,0));
+                                valid = false;
+                            }else{
+                                moneyPanel.getComponent(3).setForeground(new Color(0,0,0));
+                            }
+                        }
+                    }
+                }
+                if (valid){
+                    mainPanel.add(createMoneyPanel(), "Deposit/Withdraw money");
+                    cardLayout.show(mainPanel, "Deposit/Withdraw money");
+                }
+            });
+            moneyPanel.add(button);
+        }
+
+        panel.add(moneyPanel, BorderLayout.CENTER);
 
         return(panel);
     }

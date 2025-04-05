@@ -1,3 +1,7 @@
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Random;
+
 public class Account {
     private String name;
     private String address;
@@ -6,6 +10,10 @@ public class Account {
     private double balance;
     private String[] choices = {"Everyday", "Current", "Savings"};
     private String[] defaults = {"John Doe", "123 Street City", "00-0000-0000000-00", "Everyday", "0.00"};
+    private String bankNumber = "08";
+    private String branchNumber = "0101";
+    private int currentOverdraftLimit = 1000;
+    private int withdrawlLimit = 5000;
 
     public Account(String nameIn, String addressIn, String accountNumberIn, String accountTypeIn, double balanceIn){
         this.name = nameIn;
@@ -13,6 +21,49 @@ public class Account {
         this.accountNumber = accountNumberIn;
         this.accountType = accountTypeIn;
         this.balance = balanceIn;
+    }
+
+    public Account(ArrayList<Account> accounts, String name, String address, String accountType){
+        this.name = name.replace(",", "");
+        this.address = address.replace(",", "");
+
+        String suffix = "00";
+        String personalNumber = "0000000";
+        Boolean newNumber = true;
+
+        for (int i = 0; i < accounts.size(); i++){
+            String[] splitAccountNumber = accounts.get(i).getAccountNumber().split("-");
+            
+            if (accounts.get(i).getName().equals(name) && accounts.get(i).getAddress().equals(address)){
+                personalNumber = splitAccountNumber[2];
+                if (Integer.parseInt(splitAccountNumber[3]) < 9){
+                    suffix = "0" + Integer.toString(Integer.parseInt(splitAccountNumber[3])+1);
+                }else{
+                    suffix = Integer.toString(Integer.parseInt(splitAccountNumber[3])+1);
+                }
+                newNumber = false;
+            }
+
+            if (newNumber){
+                Random random = new Random();
+                personalNumber = Integer.toString(random.nextInt(9999999));
+                while (personalNumber.length() < 7){
+                    personalNumber = "0" + personalNumber;
+                }
+                personalNumber = personalNumber.substring(0, 7);
+                while (personalNumber == splitAccountNumber[2]){
+                    personalNumber = Integer.toString(random.nextInt(9999999));
+                    while (personalNumber.length() < 7){
+                        personalNumber = "0" + personalNumber;
+                    }
+                    personalNumber = personalNumber.substring(0, 7);
+                }
+            }
+        }
+
+        this.accountNumber = bankNumber + "-" + branchNumber + "-" + personalNumber + "-" + suffix;
+        this.accountType = accountType;
+        this.balance = 0;
     }
 
     public Account(){
@@ -81,6 +132,7 @@ public class Account {
     }
 
     public Boolean setData(String input, int index){
+        input = input.replace(",", "");
         switch (index){
             case 0:
                 if (input.isBlank()){
@@ -112,12 +164,56 @@ public class Account {
                 return(true);
             case 4:
                 try{
-                    if (!(this.accountType == "Current") && Double.parseDouble(input) < 0 || //Only allows current accounts to overdraft
-                    this.accountType == "Current" && Double.parseDouble(input) < -1000 ||    //Only allows current accounts to go $1000 into overdraft
-                    (Double.parseDouble(input) - this.balance) < -5000){                     //Only allows withdrawls less than $5000
+                    if (!(this.accountType.equals("Current")) && Double.parseDouble(input) < 0 || //Only allows current accounts to overdraft
+                    this.accountType.equals("Current") && Double.parseDouble(input) < -currentOverdraftLimit ||    //Only allows current accounts to go $1000 into overdraft
+                    (Double.parseDouble(input) - this.balance) < -withdrawlLimit){                     //Only allows withdrawls less than $5000
                         return(false);
                     }else{
-                        this.balance = Double.parseDouble(input);
+                        BigDecimal decimal = new BigDecimal(input);
+                        this.balance = decimal.doubleValue();
+                        return(true);
+                    }
+                }catch(NumberFormatException e){ //Only allows strings containing doubles
+                    return(false);
+                }
+            default:
+                return(true);
+        }
+    }
+
+    public Boolean checkData(String input, int index){
+        switch (index){
+            case 0:
+                if (input.isBlank()){
+                    return(false);
+                }
+                return(true);
+            case 1:
+                if (input.isBlank()){
+                    return(false);
+                }
+                return(true);
+            case 2:
+                if (!(input.length() == 18)){
+                    return(false);
+                }else if (!(input.charAt(2) == '-' && input.charAt(7) == '-' && input.charAt(15) == '-')){
+                    return(false);
+                }
+                return(true);
+            case 3:
+                if ((this.balance < 0) && (input != "Current")){         //Only allows account to be current if balance < 0
+                    return(false);
+                }else if((this.balance < -1000) && (input == "Current")){ //Does not allow current account if past overdraft limit
+                    return(false);
+                }
+                return(true);
+            case 4:
+                try{
+                    if (!(this.accountType.equals("Current")) && Double.parseDouble(input) < 0 || //Only allows current accounts to overdraft
+                    this.accountType.equals("Current") && Double.parseDouble(input) < -currentOverdraftLimit ||    //Only allows current accounts to go $1000 into overdraft
+                    (Double.parseDouble(input) - this.balance) < -withdrawlLimit){                     //Only allows withdrawls less than $5000
+                        return(false);
+                    }else{
                         return(true);
                     }
                 }catch(NumberFormatException e){ //Only allows strings containing doubles
