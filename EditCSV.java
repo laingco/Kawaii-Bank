@@ -6,6 +6,13 @@ public class EditCSV {
     public EditCSV(){
     }
 
+    /*
+     * Takes in an arraylist of accounts and writes its contents to a .csv file
+     * 
+     * The method takes an arraylist of accounts when loops through the arraylist, writing each value of the account to a line seperated by commas.
+     * 
+     * Used to save the current account data when "Save and exit" button is pressed.
+     */
     public void setData(ArrayList<Account> input){
         try{
             FileWriter fileWriter = new FileWriter(new File("bankData.csv"));
@@ -23,6 +30,14 @@ public class EditCSV {
         };
     }
 
+    /*
+     * Returns the contenets of the 'bankData.csv' file in the format of ArrayList<String[]>.
+     * 
+     * This method gets the contents of the bank data file and while there is a new line containing data, the line is split at each comma
+     * and saved as an array of strings whic his added to an arraylist.
+     * 
+     * Used in the fillArray() method when entering the file data to an arraylist of accounts.
+     */
     public ArrayList<String[]> getData(){
         ArrayList<String[]> output = new ArrayList<String[]>();
         try{
@@ -38,6 +53,13 @@ public class EditCSV {
         return(output);
     }
 
+    /*
+     * Takes in an arraylist of accounts and outputs an arraylist of accounts.
+     * 
+     * This method takes an arraylist of accoutns(usually empty) and fills it with the contents of the bank data file and returns the same, filled, arraylist of accounts.
+     * 
+     * Used to fill the main accounts arraylist at the start of the program.
+     */
     public ArrayList<Account> fillArray(ArrayList<Account> accounts){
         ArrayList<Account> accountsOut = new ArrayList<Account>();
         ArrayList<String[]> fileContents = new ArrayList<String[]>();

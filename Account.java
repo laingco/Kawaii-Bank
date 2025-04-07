@@ -13,7 +13,7 @@ public class Account {
     private String bankNumber = "08";
     private String branchNumber = "0101";
     private int currentOverdraftLimit = 1000;
-    private int withdrawlLimit = 5000;
+    private int withdrawalLimit = 5000;
 
     /*
      * Takes in 4 strings and one double to write to the local variables for the new account.
@@ -178,8 +178,11 @@ public class Account {
     public Boolean checkData(String input, int index){
         switch (index){
             case 0:
+                if (input.isBlank()){
+                    return(false);
+                }
                 for (int i = 0; i < input.length(); i++){
-                    if (input.isBlank() || Character.isDigit(input.charAt(i))){ //Doesn't allow a blank input or an input containing numbers.
+                    if (Character.isDigit(input.charAt(i))){ //Doesn't allow a blank input or an input containing numbers.
                         return(false);
                     }
                 }
@@ -207,7 +210,7 @@ public class Account {
                 try{
                     if (!(this.accountType.equals("Current")) && Double.parseDouble(input) < 0 || //Only allows 'Current' accounts to go into overdraft.
                     this.accountType.equals("Current") && Double.parseDouble(input) < -currentOverdraftLimit || //Only allows 'Current' accounts to go $1000 into overdraft.
-                    (Double.parseDouble(input) - this.balance) < -withdrawlLimit){ //Only allows withdrawls less than or equal to the withdrawal limit.
+                    (Double.parseDouble(input) - this.balance) < -withdrawalLimit){ //Only allows withdrawls less than or equal to the withdrawal limit.
                         return(false);
                     }else{
                         return(true);

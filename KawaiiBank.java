@@ -7,7 +7,6 @@ public class KawaiiBank {
         EditCSV csvEditor = new EditCSV();
         accounts = csvEditor.fillArray(accounts);
 
-
         GUI gui = new GUI(accounts, 750, 750);
         gui.initialize();
     }

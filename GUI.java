@@ -82,7 +82,7 @@ public class GUI {
             }
             System.out.println("Total money in bank: " + sum.setScale(2,RoundingMode.HALF_EVEN).toString());
 
-            net = net.subtract(sum);
+            net = sum.subtract(net);
             System.out.println("Net deposits/withdrawls: " + net.setScale(2,RoundingMode.HALF_EVEN).toString());
 
             new EditCSV().setData(accounts); 
@@ -127,6 +127,7 @@ public class GUI {
         JPanel addAccountPanel = new JPanel(new GridLayout(4, 2, 0, 20));
         String[] labels = {"Name: ", "Address: ", "Account type: "};
         JButton save = new JButton("Create account");
+        Account infoGetterAccount = new Account();
 
         for (int i = 0; i < 3; i++){
             JLabel text = new JLabel(labels[i], JLabel.LEFT);
@@ -134,10 +135,10 @@ public class GUI {
             addAccountPanel.add(text);
 
             if (i != 2){
-                JTextField textField = new JTextField(accounts.get(accounts.size()-1).getDefaults()[i], 10);
+                JTextField textField = new JTextField(infoGetterAccount.getDefaults()[i], 10);
                 addAccountPanel.add(textField);
             }else{
-                JComboBox<String> textField = new JComboBox<String>(accounts.get(accounts.size()-1).getChoices());
+                JComboBox<String> textField = new JComboBox<String>(infoGetterAccount.getChoices());
                 textField.setSelectedIndex(0);
                 addAccountPanel.add(textField);
             }
@@ -182,9 +183,12 @@ public class GUI {
     public JPanel createBackBar(String panelName, String pageName){
         JButton back = new JButton("Back");
         back.addActionListener(e -> {
-            mainPanel.add(createAccountListPanel(), "List accounts"); 
-            mainPanel.add(createAddAccountPanel(), "Add account");
-            mainPanel.add(createRemoveAccountPanel(), "Remove account");
+            if (!pageName.equals("Remove account(s)")){
+                mainPanel.add(createAccountListPanel(), "List accounts"); 
+                mainPanel.add(createAddAccountPanel(), "Add account");
+                mainPanel.add(createRemoveAccountPanel(), "Remove account");
+                mainPanel.add(createMoneyPanel(), "Deposit/Withdraw money");
+            }
             
             ArrayList<JPanel> infoScreens = new ArrayList<JPanel>();
             for (int i = 0; i < accounts.size(); i++){
