@@ -5,9 +5,9 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 
 public class GUI {
-    private JFrame jframe = new JFrame("Kawaii Bank");
-    private JPanel mainPanel;
-    private CardLayout cardLayout;
+    private JFrame jFrame = new JFrame("Kawaii Bank");
+    private JPanel mainPanel; //All JPanels for the porgram are added to this JPanel.
+    private CardLayout cardLayout; //All JPanels in the program are handled by this CardLayout.
     private ArrayList<Account> accounts;
     private int SCREEN_WIDTH;
     private int SCREEN_HEIGHT;
@@ -15,19 +15,31 @@ public class GUI {
     public BigDecimal net = new BigDecimal(0.0);
     public BigDecimal sum = new BigDecimal(0.0);
 
+    /*
+     * Takes in an arraylist of accounts and two integers.
+     * 
+     * This the the constructor class for the GUI and sets the local variables to the inputted values.
+     * 
+     * Used to create a GUI for the bank program.
+     */
     public GUI(ArrayList<Account> accounts, int SCREEN_WIDTH, int SCREEN_HEIGHT){
         this.accounts = accounts;
         this.SCREEN_WIDTH = SCREEN_WIDTH;
         this.SCREEN_HEIGHT = SCREEN_HEIGHT;
     }
 
+    /*
+     * This method starts the GUI by setting the required parameters and greating the required components.
+     * 
+     * Used to initialize the gui after creation.
+     */
     public void initialize(){
-        for (int i = 0; i < accounts.size(); i++){
+        for (int i = 0; i < accounts.size(); i++){ //Adds up all of the account balances before anything has been edited and saves to a variable for the end of day summary.
             net = net.add(new BigDecimal(accounts.get(i).getBalance()));
         }
 
-        jframe.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        jframe.setSize(this.SCREEN_WIDTH, this.SCREEN_HEIGHT);
+        jFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        jFrame.setSize(this.SCREEN_WIDTH, this.SCREEN_HEIGHT);
 
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
@@ -35,10 +47,17 @@ public class GUI {
         JPanel homeScreen = createHomePanel();
         mainPanel.add(homeScreen, "Home");
 
-        jframe.getContentPane().add(mainPanel);
-        jframe.setVisible(true);
+        jFrame.getContentPane().add(mainPanel);
+        jFrame.setVisible(true);
     }
 
+    /*
+     * Returns a JPanel with relevant components.
+     * 
+     * This method is run to create a home panel with all of the sessiscary components.
+     * 
+     * Used in the initialize method when starting the program.
+     */
     public JPanel createHomePanel(){
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(mainMenuItems, 1, 0, 10));
@@ -48,7 +67,7 @@ public class GUI {
         panel.add(title, BorderLayout.NORTH);
 
         JButton listAccounts = new JButton("List/Edit accounts");
-        listAccounts.addActionListener(e -> {
+        listAccounts.addActionListener(e -> { //When the button is pressed, a new panel is made and added to the main panel and then shown by the card layout.
             mainPanel.add(createAccountListPanel(), "List accounts");
             cardLayout.show(mainPanel, "List accounts");
         });
@@ -77,36 +96,43 @@ public class GUI {
 
         JButton exit = new JButton("Save and exit");
         exit.addActionListener(e -> {
-            for (int i = 0; i < accounts.size(); i++){
+            for (int i = 0; i < accounts.size(); i++){ //Adds up all of the balances at the end of the day for the summary.
                 sum = sum.add(new BigDecimal(accounts.get(i).getBalance()));
             }
-            System.out.println("Total money in bank: " + sum.setScale(2,RoundingMode.HALF_EVEN).toString());
+            System.out.println("Total money in bank: " + sum.setScale(2,RoundingMode.HALF_EVEN).toString()); //Sets the output to 2dp for money conventions.
 
-            net = sum.subtract(net);
+            net = sum.subtract(net); //Gets the net money for the bank for the day by subtracting the final sum from the initial sum.
             System.out.println("Net deposits/withdrawls: " + net.setScale(2,RoundingMode.HALF_EVEN).toString());
 
-            new EditCSV().setData(accounts); 
-            jframe.dispose();
+            new EditCSV().setData(accounts);
+            jFrame.dispose(); //Deletes the JFrame containing the program.
         });
         panel.add(exit);
 
         return(panel);
     }
 
+    /*
+     * Returns a JPanel with relevant components.
+     * 
+     * This method creates a list of JButtons, each relating to an account in the accounts arraylist. 
+     * When one the the accoount's JButtons is pressed a new JPanel is made using createAccountInfoPanel() with the current information of the account.
+     */
     public JPanel createAccountListPanel(){
-        JPanel panel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new BorderLayout()); //A borderlayout is used to have basic layout functionality for locating the back bar and the info panel.
         panel.add(createBackBar("Home", "Accounts list"), BorderLayout.NORTH);
 
         ArrayList<JPanel> infoScreens = new ArrayList<JPanel>();
         for (int i = 0; i < accounts.size(); i++){
-            infoScreens.add(createAccountInfoPanel(i));
+            infoScreens.add(createAccountInfoPanel(i)); //Fills an arraylist of JPanels, each with information corresponding to an account in the accounts arraylist.
             mainPanel.add(infoScreens.get(i), accounts.get(i).getAccountNumber());
         }
         
         JPanel accountListPanel = new JPanel(new GridLayout(accounts.size(), 1, 0, 10));
         for (int i = 0; i < accounts.size(); i++){
+            //Labels each JButton with the correct information for the associated account info panel.
             JButton button = new JButton(accounts.get(i).getName() + " | " + accounts.get(i).getAccountType() + " | " +  Double.toString(accounts.get(i).getBalance()));
-            int x = i;
+            final int x = i; //Makes the current 'i' a static 'x' with the same value for use in the actionListener.
             button.addActionListener(e -> {
                 cardLayout.show(mainPanel, accounts.get(x).getAccountNumber());
             });
