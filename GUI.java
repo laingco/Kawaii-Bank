@@ -132,20 +132,28 @@ public class GUI {
         for (int i = 0; i < accounts.size(); i++){
             //Labels each JButton with the correct information for the associated account info panel.
             JButton button = new JButton(accounts.get(i).getName() + " | " + accounts.get(i).getAccountType() + " | " +  Double.toString(accounts.get(i).getBalance()));
-            final int x = i; //Makes the current 'i' a static 'x' with the same value for use in the actionListener.
+            final int x = i; //Makes the current 'i' a static 'x' with the same value for use in the actionListener as it needs a static reference.
             button.addActionListener(e -> {
-                cardLayout.show(mainPanel, accounts.get(x).getAccountNumber());
+                cardLayout.show(mainPanel, accounts.get(x).getAccountNumber()); //Shows the associated panel for the pRessed button, identified by the account number.
             });
             accountListPanel.add(button);
         }
 
-        JScrollPane scrollPanel = new JScrollPane(accountListPanel);
+        JScrollPane scrollPanel = new JScrollPane(accountListPanel); //Makes the list scrollable.
         scrollPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         panel.add(scrollPanel, BorderLayout.CENTER);
 
         return(panel);
     }
 
+    /*
+     * Returns a JPanel with relevant components.
+     * 
+     * This method creates a JPanel with two text fields and a dropdown box along with a 'Create account' button.
+     * When the button is pressed a new account is created and added to the accounts arraylist with an automaticall generated account number, all assuming the inputs are valid.
+     * 
+     * Used in the main panel for the add account button.
+     */
     public JPanel createAddAccountPanel(){
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(createBackBar("Home", "Create new account"), BorderLayout.NORTH);
@@ -155,31 +163,31 @@ public class GUI {
         JButton save = new JButton("Create account");
         Account infoGetterAccount = new Account();
 
-        for (int i = 0; i < 3; i++){
+        for (int i = 0; i < 3; i++){ //Loops for each input.
             JLabel text = new JLabel(labels[i], JLabel.LEFT);
             text.setFont(new Font("Arial", Font.PLAIN, 25));
             addAccountPanel.add(text);
 
             if (i != 2){
-                JTextField textField = new JTextField(infoGetterAccount.getDefaults()[i], 10);
+                JTextField textField = new JTextField(infoGetterAccount.getDefaults()[i], 10); //Only makes JTextFields when its not the 3rd row.
                 addAccountPanel.add(textField);
             }else{
-                JComboBox<String> textField = new JComboBox<String>(infoGetterAccount.getChoices());
+                JComboBox<String> textField = new JComboBox<String>(infoGetterAccount.getChoices()); //Makes a JComboBox on the 3rd row.
                 textField.setSelectedIndex(0);
                 addAccountPanel.add(textField);
             }
         }
 
         save.addActionListener(e -> {
-            accounts.add(new Account());
+            accounts.add(new Account()); //Creates a temporary account for indexing.
             final int index = accounts.size()-1;
-            boolean errors = false;
+            boolean errors = false; //Whether any input has an invalid input.
             String inputs[] = new String[3];
             
             for (int i = 0; i < 2; i++){
-                int compIndex = 2 * i + 1;
-                JTextField textField = (JTextField) addAccountPanel.getComponent(compIndex);
-                if (!accounts.get(index).checkData(textField.getText(), i)){
+                int compIndex = 2 * i + 1; //Sets a appropriate index for the required component in the addAccountPanel.
+                JTextField textField = (JTextField) addAccountPanel.getComponent(compIndex); //Casts the found component as a JTextField so data can be read.
+                if (!accounts.get(index).checkData(textField.getText(), i)){ //Checks for valid input.
                     addAccountPanel.getComponent(compIndex).setForeground(new Color(255,0,0));
                     errors = true;
                 }else{
@@ -188,11 +196,11 @@ public class GUI {
                 }
             }
 
-            JComboBox<String> textField3 = (JComboBox<String>) addAccountPanel.getComponent(5);
+            JComboBox<String> textField3 = (JComboBox<String>) addAccountPanel.getComponent(5); //Casts the found component as a JComboBox(the static index will ALWAYS be a JComboBox so will not throw an error).
             inputs[2] = textField3.getSelectedItem().toString();
 
-            accounts.remove(index);
-            if (!errors){
+            accounts.remove(index); //Removes the temporary account.
+            if (!errors){ //Only creates an account if there are no errors.
                 accounts.add(new Account(accounts, inputs[0], inputs[1], inputs[2]));
                 mainPanel.add(createHomePanel(), "Home");
                 cardLayout.show(mainPanel, "Home");
@@ -206,20 +214,26 @@ public class GUI {
         return(panel);
     }
 
+    /*
+     * Takes in two strings and outputs a JPanel with corresponding components.
+     * 
+     * This method takes the panel identifier string for a panel the back button should go to and the name of the page the back bar is on.
+     * Then when the back button is pressed the inputted panel is shown and all panels are refreshed.
+     * 
+     * Used on all panels except from the main panel to go back to the previous page.
+     */
     public JPanel createBackBar(String panelName, String pageName){
         JButton back = new JButton("Back");
         back.addActionListener(e -> {
-            if (!pageName.equals("Remove account(s)")){
-                mainPanel.add(createAccountListPanel(), "List accounts"); 
-                mainPanel.add(createAddAccountPanel(), "Add account");
-                mainPanel.add(createRemoveAccountPanel(), "Remove account");
-                mainPanel.add(createMoneyPanel(), "Deposit/Withdraw money");
-            }
+            mainPanel.add(createAccountListPanel(), "List accounts"); //Refreshes all pages.
+            mainPanel.add(createAddAccountPanel(), "Add account");
+            mainPanel.add(createRemoveAccountPanel(), "Remove account");
+            mainPanel.add(createMoneyPanel(), "Deposit/Withdraw money");
             
             ArrayList<JPanel> infoScreens = new ArrayList<JPanel>();
             for (int i = 0; i < accounts.size(); i++){
                 infoScreens.add(createAccountInfoPanel(i));
-                mainPanel.add(infoScreens.get(i), accounts.get(i).getAccountNumber());
+                mainPanel.add(infoScreens.get(i), accounts.get(i).getAccountNumber()); //Refreshes all account info panels.
             }
 
             cardLayout.show(mainPanel, panelName);
@@ -233,6 +247,14 @@ public class GUI {
         return(backBar);
     }
 
+    /*
+     * Takes in an index as an integer and returns a JPanel.
+     * 
+     * This method creates a panel with all of the information for the account at the index of the accounts arraylist.
+     * It also allows the information to be edited with error checking.
+     * 
+     * Used in the account list panel to provide information on all avaliable accounts.
+     */
     public JPanel createAccountInfoPanel(int accountIndex){
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(createBackBar("List accounts", "Account info"), BorderLayout.NORTH);
@@ -288,6 +310,14 @@ public class GUI {
         return(panel);
     }
 
+    /*
+     * Returns a JPanel with relevant components.
+     * 
+     * This method creates a JPanel with a list of buttons each labeled with information for the corresponding account.
+     * When one of the buttons is pressed the button and the corresponding account is removed from the screen and arraylist of accounts.
+     * 
+     * Used in the main menu panel to allow users to remove accounts.
+     */
     public JPanel createRemoveAccountPanel(){
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(createBackBar("Home", "Remove account(s)"), BorderLayout.NORTH);
@@ -298,9 +328,9 @@ public class GUI {
             final int x = i;
             button.addActionListener(e -> {
                 accounts.remove(x);
-                accountListPanel.remove(accountListPanel.getComponent(x));
-                mainPanel.add(createRemoveAccountPanel(), "Remove account");
-                cardLayout.show(mainPanel, "Remove account");
+                accountListPanel.remove(accountListPanel.getComponent(x)); //Removes the selected accounts JPanel.
+                mainPanel.add(createRemoveAccountPanel(), "Remove account"); //Refreshes the JPanel.
+                cardLayout.show(mainPanel, "Remove account"); //Shows the refreshed panel.
             });
             accountListPanel.add(button);
         }
@@ -312,6 +342,13 @@ public class GUI {
         return(panel);
     }
 
+    /*
+     * Returns a JPanel with relevant components.
+     * 
+     * This method creates a JPanel with the components needed for the user to withdraw or deposit money into out out of any account.
+     * 
+     * Used in the main menu panel to allow users to deposit or withdraw money.
+     */
     public JPanel createMoneyPanel(){
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(createBackBar("Home", "Deposit/Withdraw money"), BorderLayout.NORTH);
@@ -321,8 +358,9 @@ public class GUI {
         JLabel accountSelectLabel = new JLabel("Select account: ");
         moneyPanel.add(accountSelectLabel);
         
-        String[] menuItems = new String[accounts.size()];
-        for (int i = 0; i < accounts.size(); i++){
+        String[] menuItems = new String[accounts.size()]; //Creates an array of strings the size of the accounts arraylist for the JComboBox items.
+        for (int i = 0; i < accounts.size(); i++){ //Fills the array with appropriately named strings for labels.
+            //Each account is identified by the name of the owner and which account of theirs it is followed by the account type and balance.
             menuItems[i] = accounts.get(i).getName() + " " + (Integer.parseInt(accounts.get(i).getAccountNumber().substring(17)) + 1) + " | " + accounts.get(i).getAccountType() + " | " +  Double.toString(accounts.get(i).getBalance());
         }
         JComboBox<String> accountSelect = new JComboBox<String>(menuItems);
@@ -335,19 +373,19 @@ public class GUI {
         moneyPanel.add(valueField);
 
         String[] labels = {"Deposit", "Withdraw"};
-        for (int i = 0; i < 2; i++){
+        for (int i = 0; i < 2; i++){ //Loops once for each JButton.
             JButton button = new JButton(labels[i]);
             final int x = i;
             button.addActionListener(e -> {
-                JComboBox<String> jBox = (JComboBox<String>)moneyPanel.getComponent(1);
+                JComboBox<String> jBox = (JComboBox<String>)moneyPanel.getComponent(1); //Casts the second money panel component as a JComboBox(it is a static reference so will never throw an error).
                 JTextField jField = (JTextField)moneyPanel.getComponent(3);
-                Boolean valid = true;
+                Boolean valid = true; //Whether the input is valid for the account selected.
                 for (int j = 0; j < accounts.size(); j++){
                     Account selectedAccount = accounts.get(j);
-                    if((selectedAccount.getName() + " " + (Integer.parseInt(selectedAccount.getAccountNumber().substring(17)) + 1) + " | " +
-                    selectedAccount.getAccountType() + " | " +  Double.toString(selectedAccount.getBalance())).equals(jBox.getSelectedItem().toString())){
-                        if (x == 0){
-                            if (!selectedAccount.setData(new BigDecimal(selectedAccount.getBalance()).add(new BigDecimal(jField.getText())).setScale(2, RoundingMode.HALF_EVEN).toString(), 4)){ 
+                    if((selectedAccount.getName() + " " + (Integer.parseInt(selectedAccount.getAccountNumber().substring(17)) + 1) + " | " + selectedAccount.getAccountType() + " | " +  Double.toString(selectedAccount.getBalance()))
+                    .equals(jBox.getSelectedItem().toString())){ //True when the selected account, is the current account in the for loop(j).
+                        if (x == 0){ //If the current button is 'Deposit'.
+                            if (!selectedAccount.setData(new BigDecimal(selectedAccount.getBalance()).add(new BigDecimal(jField.getText())).setScale(2, RoundingMode.HALF_EVEN).toString(), 4)){ //Checks valid input for the selected account.
                                 moneyPanel.getComponent(3).setForeground(new Color(255,0,0));
                                 valid = false;
                             }else{
@@ -364,7 +402,7 @@ public class GUI {
                         }
                     }
                 }
-                if (valid){
+                if (valid){ //Only refreshes the panel if the input is valud.
                     mainPanel.add(createMoneyPanel(), "Deposit/Withdraw money");
                     cardLayout.show(mainPanel, "Deposit/Withdraw money");
                 }
